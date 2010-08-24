@@ -34,7 +34,7 @@
     (<- [!shard !key !value]
         (pairs-sq !keyraw !valueraw)
         (mk-sortable-key [(.getLPFactory spec)] !keyraw :> !sort-key)
-        (shardify [(.getNumShards spec)] !key :> !shard)
+        (shardify [(.getNumShards spec)] !keyraw :> !shard)
         (:sort !sort-key)
         ((IdentityBuffer.) !keyraw !valueraw :> !key !value)
         )))
