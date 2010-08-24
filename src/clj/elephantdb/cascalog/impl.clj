@@ -8,13 +8,7 @@
   )
 
 (defn- serializable-persistence-options [options]
-  (when options
-    (HashMap.
-     (into
-      {}
-      (doseq [[k v] options]
-        [k (HashMap. v)]
-        )))))
+  (HashMap. options))
 
 (defn- serializable-list [l]
   (when l
