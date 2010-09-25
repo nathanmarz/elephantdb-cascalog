@@ -25,11 +25,11 @@
     ))
 
 (defmapop [shardify [#^Integer num-shards]]
-  [#^BytesWritable k]
+  [k]
   (Utils/keyShard (Common/serializeElephantVal k) num-shards))
 
 (defmapop [mk-sortable-key [#^LocalPersistenceFactory fact]]
-  [#^BytesWritable k]
+  [k]
   (BytesWritable.
    (.getSortableKey
     (.getKeySorter fact)
