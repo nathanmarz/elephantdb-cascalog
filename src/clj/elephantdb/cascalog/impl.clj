@@ -21,6 +21,8 @@
     (set! (. ret updater) (:updater args))
     (if-let [to (:timeout-ms args)]
       (set! (. ret timeoutMs) to))
+    (set! (. ret deserializer) (:deserializer args))
+    (set! (. ret version) (:version args))
     ret
     ))
 
