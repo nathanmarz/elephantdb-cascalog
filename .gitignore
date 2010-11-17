@@ -3,3 +3,5 @@ classes
 /CHILD
 /CHILDMAKER
 elephantdb-cascalog.jar
+/lib
+pom.xml

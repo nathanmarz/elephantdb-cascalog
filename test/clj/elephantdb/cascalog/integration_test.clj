@@ -40,12 +40,12 @@
                ]]
     (with-tmp-sources [source (mk-writable-pairs data)
                        source2 (mk-writable-pairs data2)]
-      (write-to-elephant!
+      (?-
        (elephant-tap tmp {:num-shards 4 :persistence-factory (JavaBerkDB.)} {})
        source)
       (e/with-single-service-handler [handler {"domain" tmp}]
         (e/check-domain "domain" handler data))
-      (write-to-elephant!
+      (?-
        (elephant-tap tmp {:updater (mk-clj-updater #'merge-updater)})
        source2)
       (e/with-single-service-handler [handler {"domain" tmp}]

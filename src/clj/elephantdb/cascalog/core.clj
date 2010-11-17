@@ -3,7 +3,6 @@
             LongDeserializer StringDeserializer IntDeserializer])
   (:import [elephantdb.hadoop ReplaceUpdater])
   (:import [elephantdb.cascalog ClojureUpdater])
-  (:import [cascalog.ops IdentityBuffer])
   (:import [org.apache.hadoop.conf Configuration])
   (:import [elephantdb Utils])
   (:use [cascalog api])
@@ -50,30 +49,20 @@
   ([root domain-spec args]
      (let [args (convert-clj-args (merge DEFAULT-ARGS args))
            domain-spec (when domain-spec
-                         (c/convert-clj-domain-spec domain-spec))]
-       (ElephantDBTap. root domain-spec args)
+                         (c/convert-clj-domain-spec domain-spec))
+           etap (ElephantDBTap. root domain-spec args)]
+       (cascalog-tap
+         etap
+         (fn [pairs]
+           [etap (elephant<- etap pairs)]
+           ))
        )))
-
-(defn elephant<- [elephant-tap pairs-sq]
-  (let [spec (.getSpec elephant-tap)]
-    (<- [!shard !key !value]
-        (pairs-sq !keyraw !valueraw)
-        (mk-sortable-key [(.getLPFactory spec)] !keyraw :> !sort-key)
-        (shardify [(.getNumShards spec)] !keyraw :> !shard)
-        (:sort !sort-key)
-        ((IdentityBuffer.) !keyraw !valueraw :> !key !value)
-        )))
-
-(defn write-to-elephant! [tap pairs-sq]
-  (let [sq (elephant<- tap pairs-sq)]
-    (?- tap sq)
-    ))
 
 (defn reshard! [source-dir target-dir numshards]
   (let [fs (Utils/getFS source-dir (Configuration.))
         spec (c/read-domain-spec fs source-dir)
         new-spec (assoc spec :num-shards numshards)]
-    (write-to-elephant!
+    (?-
      (elephant-tap target-dir new-spec {})
      (elephant-tap source-dir))
     ))
