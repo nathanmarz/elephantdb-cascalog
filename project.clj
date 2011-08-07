@@ -13,5 +13,4 @@
                      [org.apache.hadoop/hadoop-core "0.20.2-dev"]
                      [swank-clojure "1.2.1"]
                      ]
-  :aot :all
   )
