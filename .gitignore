@@ -1,7 +1,8 @@
+elephantdb-cascading.jar
+CHILD
+CHILDMAKER
 _deps
 classes
-/CHILD
-/CHILDMAKER
-elephantdb-cascalog.jar
-/lib
+lib
 pom.xml
+*.jar
