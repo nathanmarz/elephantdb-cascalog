@@ -5,15 +5,13 @@
   (:import [java.util ArrayList HashMap])
   (:import [cascalog.ops IdentityBuffer])
   (:import [org.apache.hadoop.io BytesWritable])
-  (:use [cascalog api])
-  )
+  (:use [cascalog api]))
 
 (defn- serializable-persistence-options [options]
   (HashMap. options))
 
 (defn- serializable-list [l]
-  (when l
-    (ArrayList. l)))
+  (when l (ArrayList. l)))
 
 (defn convert-clj-args [args]
   (let [ret (ElephantDBTap$Args.)]

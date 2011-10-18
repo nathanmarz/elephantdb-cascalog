@@ -6,8 +6,7 @@
   (:require [cascalog [ops :as c]])
   (:import [org.apache.hadoop.io BytesWritable])
   (:import [elephantdb.persistence JavaBerkDB])
-  (:import [elephantdb Utils])
-  )
+  (:import [elephantdb Utils]))
 
 (defn mk-writable-pairs [pairs]
   (map (fn [[k v]] [(BytesWritable. k) (BytesWritable. v)]) pairs))
@@ -17,8 +16,7 @@
         nv (if ov
              (byte-array (concat (seq ov) (seq v)))
              v)]
-    (.add lp k nv)
-    ))
+    (.add lp k nv)))
 
 (e/deffstest test-all [fs tmp]
   (let [data [[(e/barr 0) (e/barr 1)]
