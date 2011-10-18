@@ -1,15 +1,19 @@
 (ns elephantdb.cascalog.integration-test
-  (:use clojure.test)
-  (:use [cascalog api testing])
-  (:use [elephantdb.cascalog core])
-  (:require [elephantdb [testing :as e] [config :as config]])
-  (:require [cascalog [ops :as c]])
-  (:import [org.apache.hadoop.io BytesWritable])
-  (:import [elephantdb.persistence JavaBerkDB])
-  (:import [elephantdb Utils]))
+  (:use clojure.test
+        elephantdb.cascalog.core
+        [cascalog api testing])
+  (:require [elephantdb.testing :as e]
+            [elephantdb.config :as config]
+            [cascalog.ops :as c])
+  (:import [org.apache.hadoop.io BytesWritable]
+           [elephantdb.persistence JavaBerkDB]
+           [elephantdb Utils]))
 
 (defn mk-writable-pairs [pairs]
-  (map (fn [[k v]] [(BytesWritable. k) (BytesWritable. v)]) pairs))
+  (map (fn [[k v]]
+         [(BytesWritable. k)
+          (BytesWritable. v)])
+       pairs))
 
 (defn merge-updater [lp k v]
   (let [ov (.get lp k)
@@ -18,7 +22,7 @@
              v)]
     (.add lp k nv)))
 
-(e/deffstest test-all [fs tmp]
+(e/def-fs-test test-all [fs tmp]
   (let [data [[(e/barr 0) (e/barr 1)]
               [(e/barr 1) (e/barr 2 2)]
               [(e/barr 3) (e/barr 3 3 4)]
@@ -38,17 +42,16 @@
                ]]
     (with-tmp-sources [source (mk-writable-pairs data)
                        source2 (mk-writable-pairs data2)]
-      (?-
-       (elephant-tap tmp {:num-shards 4 :persistence-factory (JavaBerkDB.)} {})
-       source)
+      (?- (elephant-tap tmp {:num-shards 4
+                             :persistence-factory (JavaBerkDB.)}
+                        {})
+          source)
       (e/with-single-service-handler [handler {"domain" tmp}]
         (e/check-domain "domain" handler data))
-      (?-
-       (elephant-tap tmp {:updater (mk-clj-updater #'merge-updater)})
-       source2)
+      (?- (elephant-tap tmp {:updater (mk-clj-updater #'merge-updater)})
+          source2)
       (e/with-single-service-handler [handler {"domain" tmp}]
-        (e/check-domain "domain" handler data3)
-        ))))
+        (e/check-domain "domain" handler data3)))))
 
 (defn test-to-int [bw]
   (int (first (.get bw))))
@@ -64,8 +67,7 @@
                [(e/barr 7) (e/barr 9)]
                [(e/barr 8) (e/barr 99)]
                [(e/barr 9) (e/barr 4)]
-               [(e/barr 10) (e/barr 3)]
-               ]]
+               [(e/barr 10) (e/barr 3)]]]
     (e/with-sharded-domain [dpath
                             {:num-shards 3
                              :persistence-factory (JavaBerkDB.)}
@@ -79,8 +81,7 @@
                [?intval ?count]
                ((elephant-tap dpath) ?key _)
                (test-to-int ?key :> ?intval)
-               (c/count ?count))
-      )))
+               (c/count ?count)))))
 
 ;; TODO: test read specific version using a deserializer
 
@@ -94,17 +95,15 @@
                [?key ?intval]
                ((elephant-tap dpath {:deserializer (string-deserializer)})
                 ?key ?value)
-               (test-to-int ?value :> ?intval))
-      )))
+               (test-to-int ?value :> ?intval)))))
 
-(e/deffstest test-reshard [fs tmpout1 tmpout2]
+(e/def-fs-test test-reshard [fs tmpout1 tmpout2]
   (let [pairs [[(e/barr 0) (e/barr 1)]
                [(e/barr 1) (e/barr 2)]
                [(e/barr 2) (e/barr 3)]
                [(e/barr 3) (e/barr 0)]
                [(e/barr 4) (e/barr 0)]
-               [(e/barr 5) (e/barr 1)]
-               ]]
+               [(e/barr 5) (e/barr 1)]]]
     (e/with-sharded-domain [dpath
                             {:num-shards 3
                              :persistence-factory (JavaBerkDB.)}
@@ -116,5 +115,4 @@
       (reshard! dpath tmpout2 2)
       (is (= 1 (:num-shards (config/read-domain-spec fs tmpout1))))
       (e/with-single-service-handler [handler {"domain" tmpout2}]
-        (e/check-domain "domain" handler pairs))
-      )))
+        (e/check-domain "domain" handler pairs)))))

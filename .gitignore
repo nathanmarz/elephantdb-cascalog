@@ -6,3 +6,4 @@ classes
 lib
 pom.xml
 *.jar
+.lein-failures
