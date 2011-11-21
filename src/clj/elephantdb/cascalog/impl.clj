@@ -15,19 +15,19 @@
 
 (defn convert-clj-args [args]
   (let [ret (ElephantDBTap$Args.)]
-    (set! (. ret persistenceOptions) (serializable-persistence-options (:persistence-options args)))
-    (set! (. ret tmpDirs) (serializable-list (:tmp-dirs args)))
-    (set! (. ret updater) (:updater args))
+    (set! (.persistenceOptions ret) (serializable-persistence-options (:persistence-options args)))
+    (set! (.tmpDirs ret) (serializable-list (:tmp-dirs args)))
+    (set! (.updater ret) (:updater args))
     (if-let [to (:timeout-ms args)]
-      (set! (. ret timeoutMs) to))
-    (set! (. ret deserializer) (:deserializer args))
-    (set! (. ret version) (:version args))
-    ret
-    ))
+      (set! (.timeoutMs ret) to))
+    (set! (.deserializer ret) (:deserializer args))
+    (set! (.version ret) (:version args))
+    ret))
 
-(defmapop [shardify [#^Integer num-shards]]
+(defmapop [shardify [^Integer num-shards]]
   [k]
-  (Utils/keyShard (Common/serializeElephantVal k) num-shards))
+  (Utils/keyShard (Common/serializeElephantVal k)
+                  num-shards))
 
 (defmapop [mk-sortable-key [#^LocalPersistenceFactory fact]]
   [k]

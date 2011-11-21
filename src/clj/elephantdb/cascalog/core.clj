@@ -19,13 +19,13 @@
   :version)
 
 (def DEFAULT-ARGS
-     (struct ElephantArgs
-             {}
-             nil
-             (ReplaceUpdater.)
-             nil
-             nil
-             nil))
+  (struct ElephantArgs
+          {}
+          nil
+          (ReplaceUpdater.)
+          nil
+          nil
+          nil))
 
 (defn mk-clj-updater
   "Can be given either a var or a vector of var and args (for HOF)"
@@ -51,18 +51,14 @@
            domain-spec (when domain-spec
                          (c/convert-clj-domain-spec domain-spec))
            etap (ElephantDBTap. root domain-spec args)]
-       (cascalog-tap
-         etap
-         (fn [pairs]
-           [etap (elephant<- etap pairs)]
-           ))
-       )))
+       (cascalog-tap etap
+                     (fn [pairs]
+                       [etap (elephant<- etap pairs)])))))
 
-(defn reshard! [source-dir target-dir numshards]
+(defn reshard!
+  [source-dir target-dir numshards]
   (let [fs (Utils/getFS source-dir (Configuration.))
         spec (c/read-domain-spec fs source-dir)
         new-spec (assoc spec :num-shards numshards)]
-    (?-
-     (elephant-tap target-dir new-spec {})
-     (elephant-tap source-dir))
-    ))
+    (?- (elephant-tap target-dir new-spec {})
+        (elephant-tap source-dir))))
