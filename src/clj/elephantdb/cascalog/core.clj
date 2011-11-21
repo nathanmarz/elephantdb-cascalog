@@ -60,6 +60,8 @@
   (StringDeserializer.))
 
 (defn elephant-tap
+  "Note that when sourcing, you currently HAVE to specify a
+  deserializer (since you're getting a byte array back)"
   [root & {:keys [args domain-spec]}]
   (let [args (convert-clj-args (merge DEFAULT-ARGS args))
         domain-spec (when domain-spec (c/convert-clj-domain-spec domain-spec))
