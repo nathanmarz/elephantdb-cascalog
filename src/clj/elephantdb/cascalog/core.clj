@@ -73,5 +73,5 @@
   (let [fs (Utils/getFS source-dir (Configuration.))
         spec (c/read-domain-spec fs source-dir)
         new-spec (assoc spec :num-shards numshards)]
-    (?- (elephant-tap target-dir new-spec {})
+    (?- (elephant-tap target-dir :domain-spec new-spec)
         (elephant-tap source-dir))))
