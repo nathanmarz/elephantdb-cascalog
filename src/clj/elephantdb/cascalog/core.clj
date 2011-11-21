@@ -1,15 +1,17 @@
 (ns elephantdb.cascalog.core
-  (:import [elephantdb.cascading Common ElephantDBTap
-            LongDeserializer StringDeserializer IntDeserializer])
-  (:import [elephantdb.hadoop ReplaceUpdater])
-  (:import [elephantdb.cascalog ClojureUpdater])
-  (:import [org.apache.hadoop.conf Configuration])
-  (:import [elephantdb Utils])
-  (:use [cascalog api])
-  (:use [elephantdb.cascalog impl])
-  (:require [cascalog [workflow :as w]])
-  (:require [elephantdb [config :as c]]))
+  (:use cascalog api
+        elephantdb.cascalog
+        elephantdb.impl)
+  (:require [cascalog.workflow :as w]
+            [elephantdb.config :as c])
+  (:import [elephantdb Utils]
+           [elephantdb.cascalog ClojureUpdater]
+           [elephantdb.cascading ElephantDBTap]
+           [elephantdb.hadoop ReplaceUpdater Common
+            LongDeserializer StringDeserializer IntDeserializer]
+           [org.apache.hadoop.conf Configuration]))
 
+;; TODO: This shouldn't be a struct.
 (defstruct ElephantArgs
   :persistence-options
   :tmp-dirs
@@ -28,32 +30,43 @@
           nil))
 
 (defn mk-clj-updater
-  "Can be given either a var or a vector of var and args (for HOF)"
+  "Accepts a var OR a vector of a var and arguments. If this occurs,
+  the var will be applied to the other arguments before returning a
+  function. For example, given:
+
+  (defn make-adder [x]
+      (fn [y] (+ x y)))
+
+  Either of these are valid:
+
+  (mk-clj-updater [#'make-adder 1])
+  (mk-clj-updater #'inc)"
   [updater-spec]
   (ClojureUpdater. (w/fn-spec updater-spec)))
 
-(defn long-deserializer []
+(defn long-deserializer
+  "Deserializes long byte arrays."
+  []
   (LongDeserializer.))
 
-(defn int-deserializer []
+(defn int-deserializer
+  "Deserializes long byte arrays."
+  []
   (IntDeserializer.))
 
-(defn string-deserializer []
+(defn string-deserializer
+  "Deserializes string byte arrays."
+  []
   (StringDeserializer.))
 
 (defn elephant-tap
-  ([root]
-     (elephant-tap root nil))
-  ([root args]
-     (elephant-tap root nil args))
-  ([root domain-spec args]
-     (let [args (convert-clj-args (merge DEFAULT-ARGS args))
-           domain-spec (when domain-spec
-                         (c/convert-clj-domain-spec domain-spec))
-           etap (ElephantDBTap. root domain-spec args)]
-       (cascalog-tap etap
-                     (fn [pairs]
-                       [etap (elephant<- etap pairs)])))))
+  [root & {:keys [args domain-spec]}]
+  (let [args (convert-clj-args (merge DEFAULT-ARGS args))
+        domain-spec (when domain-spec (c/convert-clj-domain-spec domain-spec))
+        etap (ElephantDBTap. root domain-spec args)]
+    (cascalog-tap etap
+                  (fn [pairs]
+                    [etap (elephant<- etap pairs)]))))
 
 (defn reshard!
   [source-dir target-dir numshards]
