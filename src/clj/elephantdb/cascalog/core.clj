@@ -11,23 +11,13 @@
             LongDeserializer StringDeserializer IntDeserializer]
            [org.apache.hadoop.conf Configuration]))
 
-;; TODO: This shouldn't be a struct.
-(defstruct ElephantArgs
-  :persistence-options
-  :tmp-dirs
-  :updater
-  :timeout-ms
-  :deserializer
-  :version)
-
-(def DEFAULT-ARGS
-  (struct ElephantArgs
-          {}
-          nil
-          (ReplaceUpdater.)
-          nil
-          nil
-          nil))
+(def default-args
+  {:persistence-options {}
+   :updater      (ReplaceUpdater.)
+   :version      nil
+   :tmp-dirs     nil
+   :timeout-ms   nil
+   :deserializer nil})
 
 (defn mk-clj-updater
   "Accepts a var OR a vector of a var and arguments. If this occurs,
@@ -44,6 +34,7 @@
   [updater-spec]
   (ClojureUpdater. (w/fn-spec updater-spec)))
 
+;; TODO: Replace each of these with deserializers
 (defn long-deserializer
   "Deserializes long byte arrays."
   []
@@ -63,7 +54,7 @@
   "Note that when sourcing, you currently HAVE to specify a
   deserializer (since you're getting a byte array back)"
   [root & {:keys [args domain-spec]}]
-  (let [args (convert-clj-args (merge DEFAULT-ARGS args))
+  (let [args (convert-clj-args (merge default-args args))
         domain-spec (when domain-spec (c/convert-clj-domain-spec domain-spec))
         etap (ElephantDBTap. root domain-spec args)]
     (cascalog-tap etap
